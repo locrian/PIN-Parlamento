@@ -31,7 +31,9 @@ time = Time.new
 temp1 = nil
 cont = 0
 
-for i in 401..600                                                         # ciclo for para iterar entre as várias páginas do datase
+proxy_uri = URI.parse("http://46.183.162.4:80")                        # Define um proxy a ser usado na extração de modo a nao ficarmos com o ip bloqueado
+
+for i in 1..30                                                         # ciclo for para iterar entre as várias páginas do datase
   inicio = time.inspect
   
   # Capturar o url para uma variavel "url"
@@ -43,8 +45,8 @@ for i in 401..600                                                         # cicl
   #outFile = File.new("parlamento#{i}.xml", "w")                        # Cria um novo ficheiro na raiz do projeto
   outFile.puts("<session>")                                              # Coloca a tag sessão no ficheiro XML antes de cada sessão parlamentar
 
-      open(@url) {|f|                                                       # abre o url e cria um bloco
-          f.each_line {|line|
+      data = open(@url, :proxy_http_basic_authentication => [proxy_uri, "", ""]).read # {|f|                                                       # abre o url e cria um bloco
+          data.each_line {|line|
             
              ##########testa se a página existe#########
              temp1 = line.scan(/efectue nova pesquisa/)                 
@@ -83,8 +85,8 @@ for i in 401..600                                                         # cicl
                      
                         temp = line.scan(/Presenca">.*<\//) 
                      if temp.empty? == false   
-                        temp = temp.to_s.sub("[\"Presenca\\\">", "<presence>")
-                        temp = temp.sub("<\/\"]", "</presence>" )
+                        temp = temp.to_s.gsub(/.*\s[(]/, "<presence>")
+                        temp = temp.sub(")<\/\"]", "</presence>" )
                         outFile.puts(temp)
                      end
                     
@@ -101,7 +103,7 @@ for i in 401..600                                                         # cicl
           outFile.puts("</session>")                                 # Coloca o fecho da tag </SESSAO> no fim da obtenção dos dados de cada sessão
           #p f.base_uri                                             # Mostra informação do url que está a ser filtrado
           #p f.charset                                                      
-     }
+     #}
  end                                                                 #fim de ciclo for 
 
 outFile.puts("</PARLAMENTO>")                                        # Coloca o fecho da tag raiz </PARLAMENTO>
